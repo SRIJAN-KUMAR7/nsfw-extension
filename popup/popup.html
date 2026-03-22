@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>NSFW Shield</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="popup">
+    <!-- Header -->
+    <header class="popup__header">
+      <div class="popup__logo">
+        <span class="popup__shield-icon">🛡️</span>
+        <div>
+          <h1 class="popup__title">NSFW Shield</h1>
+          <p class="popup__subtitle">Real-time protection</p>
+        </div>
+      </div>
+      <div class="popup__status-dot" id="status-dot"></div>
+    </header>
+
+    <!-- Controls -->
+    <section class="popup__section">
+      <div class="popup__row">
+        <div>
+          <div class="popup__label">Protection</div>
+          <div class="popup__hint" id="toggle-hint">Active</div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="enable-toggle" checked /><span class="toggle__track"><span class="toggle__thumb"></span></span></label>
+      </div>
+    </section>
+
+    <div class="popup__divider"></div>
+
+    <section class="popup__section">
+      <div class="popup__label">Sensitivity</div>
+      <div class="sensitivity-group">
+        <button class="sens-btn" data-level="low">Low</button>
+        <button class="sens-btn sens-btn--active" data-level="medium">Medium</button>
+        <button class="sens-btn" data-level="high">High</button>
+      </div>
+    </section>
+
+    <div class="popup__divider"></div>
+
+    <!-- Stats -->
+    <section class="popup__section">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-card__value" id="stat-scanned">0</div><div class="stat-card__label">Scanned</div></div>
+        <div class="stat-card"><div class="stat-card__value" id="stat-blocked">0</div><div class="stat-card__label">Blocked</div></div>
+      </div>
+    </section>
+
+    <footer class="popup__footer">v1.0.0</footer>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

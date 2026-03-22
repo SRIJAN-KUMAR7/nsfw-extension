@@ -1,0 +1,203 @@
+/* popup.css — Minimalist Dark Theme */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    width: 320px;
+    background: #0d0d1a;
+    color: #e8e8f0;
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 13px;
+}
+
+/** --- Header --- **/
+.popup__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 16px;
+    background: #1a1a2e;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.popup__logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.popup__shield-icon {
+    font-size: 24px;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-3px);
+    }
+}
+
+.popup__title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.popup__subtitle {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/** --- Status Dot --- **/
+.popup__status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #555;
+}
+
+.popup__status-dot--active {
+    background: #00e676;
+    box-shadow: 0 0 8px rgba(0, 230, 118, 0.4);
+}
+
+/** --- Layout --- **/
+.popup__section {
+    padding: 14px 16px;
+}
+
+.popup__divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.06);
+    margin: 0 16px;
+}
+
+.popup__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.popup__label {
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+
+.popup__hint {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+/** --- Toggle --- **/
+.toggle {
+    position: relative;
+    cursor: pointer;
+}
+
+.toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle__track {
+    display: block;
+    width: 40px;
+    height: 22px;
+    background: #333;
+    border-radius: 11px;
+    position: relative;
+    transition: .2s;
+}
+
+.toggle input:checked+.toggle__track {
+    background: #ff5252;
+}
+
+.toggle__thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    transition: .2s;
+}
+
+.toggle input:checked+.toggle__track .toggle__thumb {
+    transform: translateX(18px);
+}
+
+/** --- Sensitivity Buttons --- **/
+.sensitivity-group {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.sens-btn {
+    flex: 1;
+    padding: 6px 0;
+    border-radius: 6px;
+    border: 1px solid #333;
+    background: #1a1a2e;
+    color: #666;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.sens-btn--active {
+    background: rgba(255, 82, 82, 0.15) !important;
+    border-color: #ff5252 !important;
+    color: #ff5252 !important;
+}
+
+/** --- Stats --- **/
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.stat-card {
+    background: #16213e;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+}
+
+.stat-card__value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.stat-card__label {
+    font-size: 9px;
+    color: rgba(255, 255, 255, 0.3);
+    text-transform: uppercase;
+}
+
+/** --- Footer --- **/
+.popup__footer {
+    padding: 10px;
+    font-size: 9px;
+    color: #333;
+    text-align: center;
+}
