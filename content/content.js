@@ -15,6 +15,7 @@ let stats = { scanned: 0, blocked: 0 };
 
 /** --- Initialization --- **/
 async function init() {
+    if (!chrome.runtime?.id) return;
     // Sanity checks 
     if (!window.BlurManager || !window.OverlayManager) {
         console.error('NSFW Shield core components NOT loaded correctly. Check manifest load order and file integrity.');
@@ -31,12 +32,16 @@ async function init() {
     if (window.nsfwDetector) window.nsfwDetector.loadModel().catch(() => { });
     const domMonitor = new window.DOMMonitor(handleElementBatch);
     domMonitor.observe();
-    chrome.runtime.onMessage.addListener(onMessage);
+    try {
+        chrome.runtime.onMessage.addListener(onMessage);
+    } catch (e) {
+        // Context invalidated
+    }
 }
 
 /** --- Event Batch Handler --- **/
 async function handleElementBatch(elements) {
-    if (!isEnabled) return;
+    if (!chrome.runtime?.id || !isEnabled) return;
     for (const el of elements) {
         if (el.tagName === 'IMG') await processImage(el);
         else if (el.tagName === 'VIDEO') processVideo(el);
@@ -45,6 +50,7 @@ async function handleElementBatch(elements) {
 
 /** --- Image Pipeline --- **/
 async function processImage(imgEl) {
+    if (!chrome.runtime?.id) return;
     const src = imgEl.src || imgEl.dataset.src;
     if (!src) return;
     const cache = window.nsfwCache?.resultCache;
@@ -59,6 +65,7 @@ async function processImage(imgEl) {
     updateStats();
     try {
         const result = await window.nsfwDetector.detectNSFW(imageData);
+        if (!chrome.runtime?.id) return;
         if (cache) cache.set(src, result);
         if (result.isNSFW) {
             stats.blocked++;
@@ -72,7 +79,7 @@ async function processImage(imgEl) {
 function processVideo(videoEl) {
     if (videoCleanups.has(videoEl)) return;
     const stop = window.frameExtractor?.watchVideo(videoEl, async (imageData) => {
-        if (!isEnabled) return;
+        if (!chrome.runtime?.id || !isEnabled) return;
         stats.scanned++;
         updateStats();
         try {
@@ -98,11 +105,23 @@ function applyNSFW(el, reason) {
 
 /** --- Storage & Messages --- **/
 function getStoredSettings() {
-    return new Promise(res => chrome.storage.sync.get([STORAGE_KEY_ENABLED, STORAGE_KEY_SENSITIVITY], res));
+    return new Promise(res => {
+        if (!chrome.runtime?.id) return res({});
+        try {
+            chrome.storage.sync.get([STORAGE_KEY_ENABLED, STORAGE_KEY_SENSITIVITY], res);
+        } catch (e) {
+            res({});
+        }
+    });
 }
 
 function updateStats() {
-    chrome.storage.session?.set({ [STAT_SCANNED_KEY]: stats.scanned, [STAT_BLOCKED_KEY]: stats.blocked }).catch(() => { });
+    if (!chrome.runtime?.id) return;
+    try {
+        chrome.storage.session?.set({ [STAT_SCANNED_KEY]: stats.scanned, [STAT_BLOCKED_KEY]: stats.blocked }).catch(() => { });
+    } catch (e) {
+        // Context invalidated
+    }
 }
 
 function onMessage(msg) {
