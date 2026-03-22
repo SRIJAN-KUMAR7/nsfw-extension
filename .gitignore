@@ -1,0 +1,7 @@
+node_modules/
+models/
+venv/
+.DS_Store
+dist/
+coverage/
+*.log
