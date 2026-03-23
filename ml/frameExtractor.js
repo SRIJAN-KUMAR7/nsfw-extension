@@ -27,12 +27,22 @@ function drawToCanvas(source, width, height) {
 
 /** --- Extract Image Frame --- **/
 function extractFromImage(imgEl) {
+    const w = imgEl.naturalWidth || imgEl.width;
+    const h = imgEl.naturalHeight || imgEl.height;
+
+    // If image hasn't loaded dimensions yet, we can't extract
+    if (w === 0 || h === 0) return 'PENDING';
     if (!isSizeable(imgEl)) return null;
-    if (!imgEl.crossOrigin) imgEl.crossOrigin = 'anonymous';
-    const width = imgEl.naturalWidth || imgEl.width;
-    const height = imgEl.naturalHeight || imgEl.height;
+
+    // Only apply crossOrigin to remote URLs to avoid tainted canvas
+    // data: and blob: URLs don't need it and shouldn't be re-triggered.
+    const src = imgEl.src || '';
+    if (src.startsWith('http') && !imgEl.crossOrigin) {
+        imgEl.crossOrigin = 'anonymous';
+    }
+
     try {
-        return drawToCanvas(imgEl, width, height);
+        return drawToCanvas(imgEl, w, h);
     } catch (err) {
         return null;
     }

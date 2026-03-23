@@ -33,14 +33,29 @@ class DOMMonitor {
     _setupMutationObserver() {
         this._mutationObserver = new MutationObserver(mutations => {
             for (const mutation of mutations) {
-                for (const node of mutation.addedNodes) {
-                    if (node.nodeType !== Node.ELEMENT_NODE) continue;
-                    if (node.tagName === 'IMG' || node.tagName === 'VIDEO') this._enqueue(node);
-                    node.querySelectorAll('img, video').forEach(el => this._enqueue(el));
+                if (mutation.type === 'childList') {
+                    for (const node of mutation.addedNodes) {
+                        if (node.nodeType !== Node.ELEMENT_NODE) continue;
+                        if (node.tagName === 'IMG' || node.tagName === 'VIDEO') this._enqueue(node);
+                        node.querySelectorAll('img, video').forEach(el => this._enqueue(el));
+                    }
+                } else if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
+                    const el = mutation.target;
+                    if (el.tagName === 'IMG' || el.tagName === 'VIDEO') {
+                        // Re-enqueue if src changed, bypassing the _processed check if needed
+                        // Actually, processImage handles caching by src, so we can just enqueue.
+                        this._processed.delete(el);
+                        this._enqueue(el);
+                    }
                 }
             }
         });
-        this._mutationObserver.observe(document.documentElement, { childList: true, subtree: true });
+        this._mutationObserver.observe(document.documentElement, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['src']
+        });
     }
 
     _setupIntersectionObserver() {

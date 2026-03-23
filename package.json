@@ -5,8 +5,13 @@
     "private": true,
     "scripts": {
         "test": "jest --coverage",
-        "test:watch": "jest --watchAll",
-        "convert-model": "python scripts/convert_model.py"
+        "test:watch": "jest --watchAll"
+    },
+    "dependencies": {
+        "@tensorflow/tfjs": "^4.17.0",
+        "@tensorflow/tfjs-backend-cpu": "^4.22.0",
+        "@tensorflow/tfjs-core": "^4.22.0",
+        "nsfwjs": "^4.2.0"
     },
     "devDependencies": {
         "@babel/core": "^7.23.0",

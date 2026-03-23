@@ -23,9 +23,7 @@
                 "<all_urls>"
             ],
             "js": [
-                "lib/tf.min.js",
-                "lib/tf-tflite.min.js",
-                "lib/init-tflite.js",
+                "lib/nsfwjs.min.js",
                 "content/blurManager.js",
                 "content/overlayManager.js",
                 "content/domMonitor.js",

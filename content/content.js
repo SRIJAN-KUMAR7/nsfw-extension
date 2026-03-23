@@ -53,26 +53,47 @@ async function processImage(imgEl) {
     if (!chrome.runtime?.id) return;
     const src = imgEl.src || imgEl.dataset.src;
     if (!src) return;
+
     const cache = window.nsfwCache?.resultCache;
     if (cache?.has(src)) {
         const cached = cache.get(src);
         if (cached.isNSFW) applyNSFW(imgEl, cached.reason);
         return;
     }
+
     const imageData = window.frameExtractor?.extractFromImage(imgEl);
+
+    // Handle late-loading dimensions (lazy loading)
+    if (imageData === 'PENDING') {
+        const handleLoad = () => {
+            imgEl.removeEventListener('load', handleLoad);
+            processImage(imgEl); // Retry once loaded
+        };
+        imgEl.addEventListener('load', handleLoad);
+        return;
+    }
+
     if (!imageData) return;
+
     stats.scanned++;
     updateStats();
+
     try {
+        console.log('[NSFW Shield] Scanning image:', src.slice(0, 50) + '...');
         const result = await window.nsfwDetector.detectNSFW(imageData);
         if (!chrome.runtime?.id) return;
+
         if (cache) cache.set(src, result);
+
         if (result.isNSFW) {
+            console.warn('[NSFW Shield] Blocked NSFW content:', result.reason);
             stats.blocked++;
             updateStats();
             applyNSFW(imgEl, result.reason);
         }
-    } catch (err) { }
+    } catch (err) {
+        console.error('[NSFW Shield] Detection error:', err);
+    }
 }
 
 /** --- Video Pipeline --- **/

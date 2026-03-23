@@ -1,5 +1,6 @@
 'use strict';
 
+// NSFWJS labels: Neutral, Drawing, Hentai, Porn, Sexy
 const LABELS = ['Neutral', 'Drawing', 'Hentai', 'Porn', 'Sexy'];
 const NSFW_THRESHOLDS = { Porn: 0.65, Hentai: 0.70, Sexy: 0.60 };
 const SENSITIVITY_MAP = { low: 1.3, medium: 1.0, high: 0.75 };
@@ -11,21 +12,11 @@ let _sensitivity = 'medium';
 /** --- Get Model URL --- **/
 function getModelUrl() {
     if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getURL) {
-        return chrome.runtime.getURL('models/model.tflite');
+        // NSFWJS expects the directory containing model.json
+        return chrome.runtime.getURL('models/nsfwjs/');
     }
-    return 'models/model.tflite';
+    return 'models/nsfwjs/';
 }
-
-// Initialize Wasm Path synchronously to prevent origin CSP issues
-const TF_WASM_PATH = (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getURL)
-    ? chrome.runtime.getURL('lib/')
-    : 'lib/';
-
-if (typeof tflite !== 'undefined') {
-    tflite.setWasmPath(TF_WASM_PATH);
-}
-// Double check it on window for visibility
-window.TF_WASM_PATH = TF_WASM_PATH;
 
 /** --- Load Model --- **/
 async function loadModel() {
@@ -34,8 +25,23 @@ async function loadModel() {
 
     _loadPromise = (async () => {
         const modelUrl = getModelUrl();
-        if (typeof tflite === 'undefined') throw new Error('TFLite API not loaded');
-        _model = await tflite.loadTFLiteModel(modelUrl);
+        if (typeof nsfwjs === 'undefined') throw new Error('NSFWJS API not loaded');
+
+        // Force CPU backend for stability in content scripts
+        // WebGL often fails with 'producer' errors due to CSP or environment limits
+        try {
+            if (nsfwjs.tf && nsfwjs.tf.setBackend) {
+                await nsfwjs.tf.setBackend('cpu');
+                console.log('[NSFW Detector] Forced CPU backend');
+            }
+        } catch (e) {
+            console.warn('[NSFW Detector] Failed to set CPU backend, falling back to default');
+        }
+
+        // Load the model from the local directory
+        // nsfwjs.load(basePath, options)
+        _model = await nsfwjs.load(modelUrl, { type: 'graph' });
+        console.log('[NSFW Detector] Model loaded from:', modelUrl);
         return _model;
     })();
 
@@ -47,37 +53,18 @@ function setSensitivity(level) {
     if (SENSITIVITY_MAP[level] !== undefined) _sensitivity = level;
 }
 
-/** --- Preprocess Image --- **/
-function preprocessImageData(imageData, targetSize = 224) {
-    return tf.tidy(() => {
-        return tf.browser
-            .fromPixels(imageData)
-            .resizeBilinear([targetSize, targetSize])
-            .toFloat()
-            .div(tf.scalar(255.0))
-            .expandDims(0);
-    });
-}
-
 /** --- Classify Frame --- **/
 async function classify(imageData) {
     const model = await loadModel();
-    const tensor = preprocessImageData(imageData);
-    let predictions;
 
-    try {
-        const output = await model.predict(tensor);
-        const raw = Array.isArray(output) ? output[0] : output;
-        predictions = await raw.data();
-        // Check if raw needs disposal (tf-tflite tensors return data)
-        if (typeof raw.dispose === 'function') raw.dispose();
-    } finally {
-        tensor.dispose();
-    }
+    // nsfwjs.classify(img, topk)
+    // Works with HTMLImageElement, HTMLVideoElement, HTMLCanvasElement, or ImageData
+    const rawPredictions = await model.classify(imageData);
 
-    return LABELS.map((label, i) => ({
-        label,
-        score: predictions[i],
+    // Map NSFWJS format to our internal format {label, score}
+    return rawPredictions.map(p => ({
+        label: p.className,
+        score: p.probability
     })).sort((a, b) => b.score - a.score);
 }
 
